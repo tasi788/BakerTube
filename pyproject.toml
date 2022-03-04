@@ -8,6 +8,8 @@ authors = ["tdc <tdc@tdccc.com.tw>"]
 python = "^3.8"
 yt-dlp = "^2022.2.4"
 requests = "^2.27.1"
+PyYAML = "^6.0"
+coloredlogs = "^15.0.1"
 
 [tool.poetry.dev-dependencies]
 
