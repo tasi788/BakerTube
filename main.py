@@ -111,7 +111,7 @@ if __name__ == '__main__':
             'outtmpl': f'{Config.BackupPath.path}{video.title}/%(title)s.%(ext)s',
             'ratelimit': 1024 * 1024 * 10,
             'merge_output_format': 'mp4',
-            'progress_hooks': [notify],
+            'postprocessor_hooks': [notify],
         }
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([video.url])
