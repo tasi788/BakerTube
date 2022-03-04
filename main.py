@@ -20,8 +20,7 @@ raw_config = safe_load(open('config.yml', 'r').read())
 
 class Config:
     class _Bot:
-        token: str = raw_config['bot']['token']
-        channel: str = raw_config['bot']['channel']
+        url: str = raw_config['bot']['url']
 
     bot: _Bot = _Bot
 
@@ -31,6 +30,11 @@ class Config:
         version: str = raw_config['notion']['version']
 
     notion: _Notion = _Notion
+
+    class BackupPath:
+        path: str = raw_config['backuppath']
+
+    backuppath: BackupPath = field(repr=True, default='')
 
 
 @dataclass
@@ -78,6 +82,21 @@ class Notion:
         return lists
 
 
+def notify(d: dict):
+    if d['status'] == 'finished':
+        data = {
+            "content": "✨ 已備份",
+            "embeds": [{
+                "title": d['info_dict']['fulltitle'],
+                "url": d['info_dict']['webpage_url'],
+                "type": "rich",
+                "description": f"📂 [YouTube] - {d['info_dict']['channel']}",
+                "image": {"url": d['info_dict']['thumbnail']}
+            }]
+        }
+        requests.post(Config.bot.url, json=data)
+
+
 if __name__ == '__main__':
     notionlist = Notion()
     listing = notionlist.fetch()
@@ -89,9 +108,10 @@ if __name__ == '__main__':
         ydl_opts = {
             'format': 'bestaudio+bestvideo',
             'cookiefile': './cookies.txt',
-            'outtmpl': f'/plexdrive/[YouTube]/{video.title}/%(title)s.%(ext)s',
+            'outtmpl': f'{Config.BackupPath.path}{video.title}/%(title)s.%(ext)s',
             'ratelimit': 1024 * 1024 * 10,
-            'merge_output_format': 'mp4'
+            'merge_output_format': 'mp4',
+            'progress_hooks': [notify],
         }
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([video.url])
