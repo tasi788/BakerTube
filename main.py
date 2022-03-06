@@ -1,12 +1,14 @@
-from yt_dlp import YoutubeDL
+import logging
+import os
+import sys
+from dataclasses import dataclass, field
+from time import sleep
+from typing import List
+
+import coloredlogs
 import requests
 from yaml import safe_load
-import sys
-import os
-import logging
-import coloredlogs
-from dataclasses import dataclass, field
-from typing import List
+from yt_dlp import YoutubeDL
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(logger=logger)
@@ -100,24 +102,26 @@ def notify(d: dict):
 
 
 if __name__ == '__main__':
-    notionlist = Notion()
-    listing = notionlist.fetch()
-    for video in listing.lists:
-        if not os.path.exists(video.title):
-            os.mkdir(video.title)
+    while True:
+        notionlist = Notion()
+        listing = notionlist.fetch()
+        for video in listing.lists:
+            if not os.path.exists(video.title):
+                os.mkdir(video.title)
 
-        ydl_opts = {
-            'format': 'bestaudio+bestvideo',
-            'cookiefile': './cookies.txt',
-            'outtmpl': f'{Config.BackupPath.path}{video.title}/%(title)s.%(ext)s',
-            'ratelimit': 1024 * 1024 * 10,
-            'merge_output_format': 'mp4',
-            'postprocessor_hooks': [notify],
-        }
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([video.url])
-
-        if video.membership:
-            ydl_opts.update({'outtmpl': f'{Config.BackupPath.path}membership/{video.title}/%(title)s.%(ext)s'})
+            ydl_opts = {
+                'format': 'bestaudio+bestvideo',
+                'cookiefile': './cookies.txt',
+                'outtmpl': f'{Config.BackupPath.path}{video.title}/%(title)s.%(ext)s',
+                'ratelimit': 1024 * 1024 * 10,
+                'merge_output_format': 'mp4',
+                'postprocessor_hooks': [notify],
+            }
             with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([video.url + '/membership'])
+                ydl.download([video.url])
+
+            if video.membership:
+                ydl_opts.update({'outtmpl': f'{Config.BackupPath.path}membership/{video.title}/%(title)s.%(ext)s'})
+                with YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([video.url + '/membership'])
+        sleep(300)
