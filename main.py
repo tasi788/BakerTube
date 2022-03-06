@@ -41,6 +41,7 @@ class Config:
 class NotionData:
     title: str = field(repr=True)
     url: str = field(repr=True)
+    membership: bool = field(repr=True, default=False)
 
 
 @dataclass
@@ -78,7 +79,8 @@ class Notion:
         for x in r_.json()['results']:
             lists.lists.append(NotionData(
                 title=x['properties']['Name']['title'][-1]['plain_text'],
-                url=x['properties']['URL']['url']))
+                url=x['properties']['URL']['url'],
+                membership=x['properties']['Membership']['checkbox']))
         return lists
 
 
@@ -100,7 +102,6 @@ def notify(d: dict):
 if __name__ == '__main__':
     notionlist = Notion()
     listing = notionlist.fetch()
-
     for video in listing.lists:
         if not os.path.exists(video.title):
             os.mkdir(video.title)
