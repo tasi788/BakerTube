@@ -116,3 +116,8 @@ if __name__ == '__main__':
         }
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([video.url])
+
+        if video.membership:
+            ydl_opts.update({'outtmpl': f'{Config.BackupPath.path}membership/{video.title}/%(title)s.%(ext)s'})
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([video.url + '/membership'])
