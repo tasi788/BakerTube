@@ -77,6 +77,10 @@ class Notion:
 
     def fetch(self):
         r_ = self.query()
+        if r_.status_code != 200:
+            logger.info(f'[{r_.status_code}] - 讀取 notion 清單錯誤')
+            sys.exit(1)
+        logger.info(r_)
         lists = NotionList()
         for x in r_.json()['results']:
             lists.lists.append(NotionData(
@@ -106,13 +110,10 @@ if __name__ == '__main__':
         notionlist = Notion()
         listing = notionlist.fetch()
         for video in listing.lists:
-            if not os.path.exists(video.title):
-                os.mkdir(video.title)
-
             ydl_opts = {
                 'format': 'bestaudio+bestvideo',
                 'cookiefile': './cookies.txt',
-                'outtmpl': f'{Config.BackupPath.path}{video.title}/%(title)s.%(ext)s',
+                'outtmpl': f'{Config.BackupPath.path}/%(channel)s/%(title)s.%(ext)s',
                 'ratelimit': 1024 * 1024 * 10,
                 'merge_output_format': 'mp4',
                 'postprocessor_hooks': [notify],
