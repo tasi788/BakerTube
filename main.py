@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import sys
 from dataclasses import dataclass, field
 from time import sleep
@@ -103,6 +104,13 @@ def notify(d: dict):
             }]
         }
         requests.post(Config.bot.url, json=data)
+        filepath = d['info_dict']['filepath']
+        channel_safe = filepath.split('/')[1]
+        moveto = f'{Config.BackupPath.path}/{channel_safe}'
+        if not os.path.exists(moveto):
+            os.mkdir(moveto)
+
+        shutil.move(filepath, moveto)
 
 
 if __name__ == '__main__':
@@ -113,7 +121,7 @@ if __name__ == '__main__':
             ydl_opts = {
                 'format': 'bestaudio+bestvideo',
                 'cookiefile': './cookies.txt',
-                'outtmpl': f'{Config.BackupPath.path}/%(channel)s/%(title)s.%(ext)s',
+                'outtmpl': f'./download/%(channel)s/%(title)s.%(ext)s',
                 'ratelimit': 1024 * 1024 * 10,
                 'merge_output_format': 'mp4',
                 'postprocessor_hooks': [notify],
