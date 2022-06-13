@@ -81,7 +81,6 @@ class Notion:
         if r_.status_code != 200:
             logger.info(f'[{r_.status_code}] - 讀取 notion 清單錯誤')
             sys.exit(1)
-        logger.info(r_)
         lists = NotionList()
         for x in r_.json()['results']:
             lists.lists.append(NotionData(
