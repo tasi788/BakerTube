@@ -105,12 +105,20 @@ def notify(d: dict):
         }
         requests.post(Config.bot.url, json=data)
         filepath = d['info_dict']['filepath']
-        channel_safe = filepath.split('/')[1]
+        channel_safe = filepath.split('/')[2]
         moveto = f'{Config.BackupPath.path}/{channel_safe}'
         if not os.path.exists(moveto):
-            os.mkdir(moveto)
-
-        shutil.move(filepath, moveto)
+            try:
+                os.mkdir(moveto)
+            except Exception as e:
+                logger.exception(e)
+        try:
+            shutil.move(filepath, moveto)
+        except shutil.SameFileError:
+            pass
+        except shutil.Error as e:
+            logger.error(f'移動 {moveto} 時發生錯誤')
+            logger.error(e.__str__)
 
 
 if __name__ == '__main__':
@@ -125,6 +133,8 @@ if __name__ == '__main__':
                 'ratelimit': 1024 * 1024 * 10,
                 'merge_output_format': 'mp4',
                 'postprocessor_hooks': [notify],
+                'external_downloader': 'aria2c',
+                'download_archive': './record.txt'
             }
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([video.url])
